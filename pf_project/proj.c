@@ -47,7 +47,7 @@ void saveToFile(const Country countries[], int For, int Against, int Abstain) {
     fprintf(file, "Against: %d\n", Against);
     fprintf(file, "Abstain: %d\n", Abstain);
     fprintf(file, "\nResolution Status: ");
-    fprintf(file, (For > 97) ? "Passed\n" : "Failed\n");
+    fprintf(file, (For >12) ? "Passed\n" : "Failed\n");
 
     fclose(file);
     setConsoleColor(2); // Green for success
