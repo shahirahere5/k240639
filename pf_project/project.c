@@ -54,3 +54,74 @@ void setConsoleColor(int color) {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, color);
 }
+int main() {
+    Country countries[CountryMax];
+    int For = 0, Against = 0, Abstain = 0;
+
+    setConsoleColor(3); // Cyan for heading
+    printf("UN Voting System\n");
+    printf("Enter votes for the Resolution (for, against, abstain)\n");
+    setConsoleColor(7); // Reset to default
+
+for (int i = 0; i < CountryMax; i++) {
+        strcpy(countries[i].name, countriesList[i]);
+        while (1) {
+            setConsoleColor(6); // Yellow for prompts
+            printf("Enter %s vote (for/against/abstain): ", countries[i].name);
+            setConsoleColor(7);
+            scanf(" %9s", countries[i].vote);
+
+            if (valid(countries[i].vote)) {
+                break;
+            } else {
+                setConsoleColor(4); // Red for error
+                printf("Invalid vote. Please enter 'for', 'against', or 'abstain'.\n");
+                setConsoleColor(7);
+            }
+        }
+
+        // Count votes
+        if (strcasecmp(countries[i].vote, "for") == 0) {
+            For++;
+        } else if (strcasecmp(countries[i].vote, "against") == 0) {
+            Against++;
+        } else if (strcasecmp(countries[i].vote, "abstain") == 0) {
+            Abstain++;
+        }
+    }
+
+
+setConsoleColor(3); // Cyan for results
+    printf("\nVoting Results:\n");
+    printf("-------------------------------------------------------------\n");
+    printf("| %-25s | %-10s |\n", "Country", "Vote");
+    printf("-------------------------------------------------------------\n");
+    for (int i = 0; i < CountryMax; i++) {
+        printf("| %-25s | %-10s |\n", countries[i].name, countries[i].vote);
+    }
+    printf("-------------------------------------------------------------\n");
+
+    setConsoleColor(7); // Reset color
+    printf("\nTotal Votes:\n");
+    setConsoleColor(2); // Green for positive results
+    printf("For: %d\n", For);
+    setConsoleColor(4); // Red for negative results
+    printf("Against: %d\n", Against);
+    setConsoleColor(6); // Yellow for neutral results
+    printf("Abstain: %d\n", Abstain);
+    setConsoleColor(7);
+
+    printf("\nResolution Status: ");
+    if (For > 12) {
+        setConsoleColor(2); // Green for passed
+        printf("Passed\n");
+    } else {
+        setConsoleColor(4); // Red for failed
+        printf("Failed\n");
+    }
+    setConsoleColor(7);
+
+    saveToFile(countries, For, Against, Abstain);
+
+    return 0;
+}
