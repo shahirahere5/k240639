@@ -63,7 +63,32 @@ int main() {
     printf("Enter votes for the Resolution (for, against, abstain)\n");
     setConsoleColor(7); // Reset to default
 
+for (int i = 0; i < CountryMax; i++) {
+        strcpy(countries[i].name, countriesList[i]);
+        while (1) {
+            setConsoleColor(6); // Yellow for prompts
+            printf("Enter %s vote (for/against/abstain): ", countries[i].name);
+            setConsoleColor(7);
+            scanf(" %9s", countries[i].vote);
 
+            if (valid(countries[i].vote)) {
+                break;
+            } else {
+                setConsoleColor(4); // Red for error
+                printf("Invalid vote. Please enter 'for', 'against', or 'abstain'.\n");
+                setConsoleColor(7);
+            }
+        }
+
+        // Count votes
+        if (strcasecmp(countries[i].vote, "for") == 0) {
+            For++;
+        } else if (strcasecmp(countries[i].vote, "against") == 0) {
+            Against++;
+        } else if (strcasecmp(countries[i].vote, "abstain") == 0) {
+            Abstain++;
+        }
+    }
 
 
 setConsoleColor(3); // Cyan for results
