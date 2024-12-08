@@ -1,127 +1,215 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <windows.h>
 
-#define CountryMax 20
+#define MAX_COUNTRIES 20
+#define FILENAME "voting_results.txt"
 
 typedef struct {
     char name[50];
     char vote[10];
 } Country;
 
-const char *countriesList[CountryMax] = {
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", 
-    "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", 
+typedef struct {
+    int For;
+    int Against;
+    int Abstain;
+    int totalVotes;
+} VotingResult;
+
+const char *countryList[MAX_COUNTRIES] = {
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola",
+    "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria",
+    "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
     "Belarus", "Belgium", "Belize", "Benin", "Bhutan"
 };
 
-bool valid(const char *vote) {
+void conductVoting(Country countries[], VotingResult *result);
+void filingofvotingresults(VotingResult *result, Country countries[]);
+void displayPastResults();
+void compareTurnaround(VotingResult *newResult);
+void clearVotingResultsFile();
+bool isValidVote(const char *vote);
+void displayMenu();
+void clearInputBuffer();
+
+int main() {
+    Country countries[MAX_COUNTRIES];
+    VotingResult currentResult = {0, 0, 0, 0};
+    int choice;
+
+    for (int i = 0; i < MAX_COUNTRIES; i++) {
+        strcpy(countries[i].name, countryList[i]);
+    }
+
+    while (1) {
+        displayMenu();
+        printf("Enter your choice: ");
+        if (scanf("%d", &choice) != 1) {
+            printf("Invalid input. Please enter a valid number.\n");
+            clearInputBuffer();
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                conductVoting(countries, &currentResult);
+                filingofvotingresults(&currentResult, countries);
+                break;
+            case 2:
+                displayPastResults();
+                break;
+            case 3:
+                compareTurnaround(&currentResult);
+                break;
+            case 4:
+                clearVotingResultsFile();
+                break;
+            case 5:
+                printf("Exiting program. Goodbye!\n");
+                return 0;
+            default:
+                printf("Invalid choice! Please try again.\n");
+        }
+    }
+    return 0;
+}
+
+void displayMenu() {
+    printf("\n--- UN Voting System ---\n");
+    printf("1. Conduct Voting\n");
+    printf("2. View Past Results\n");
+    printf("3. Compare Turnaround\n");
+    printf("4. Clear Past Results\n");
+    printf("5. Exit\n");
+}
+
+void clearInputBuffer() {
+    while (getchar() != '\n');
+}
+
+bool isValidVote(const char *vote) {
     return (strcasecmp(vote, "for") == 0 || strcasecmp(vote, "against") == 0 || strcasecmp(vote, "abstain") == 0);
 }
 
-void saveToFile(const Country countries[], int For, int Against, int Abstain) {
-    FILE *file = fopen("voting_results.txt", "w");
-    if (!file) {
-        setConsoleColor(4); // Red for errors
-        printf("Error: Unable to open file for saving results.\n");
-        setConsoleColor(7);
-        return;
-    }
+void conductVoting(Country countries[], VotingResult *result) {
+    result->For = 0;
+    result->Against = 0;
+    result->Abstain = 0;
 
-    fprintf(file, "Voting Results:\n");
-    fprintf(file, "-------------------------------------------------------------\n");
-    fprintf(file, "| %-25s | %-10s |\n", "Country", "Vote");
-    fprintf(file, "-------------------------------------------------------------\n");
-    for (int i = 0; i < CountryMax; i++) {
-        fprintf(file, "| %-25s | %-10s |\n", countries[i].name, countries[i].vote);
-    }
-    fprintf(file, "-------------------------------------------------------------\n");
-    fprintf(file, "\nTotal Votes:\n");
-    fprintf(file, "For: %d\n", For);
-    fprintf(file, "Against: %d\n", Against);
-    fprintf(file, "Abstain: %d\n", Abstain);
-    fprintf(file, "\nResolution Status: ");
-    fprintf(file, (For > 12) ? "Passed\n" : "Failed\n");
-
-    fclose(file);
-    setConsoleColor(2); // Green for success
-    printf("Results saved to 'voting_results.txt'.\n");
-    setConsoleColor(7);
-}
-
-void setConsoleColor(int color) {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleTextAttribute(hConsole, color);
-}
-int main() {
-    Country countries[CountryMax];
-    int For = 0, Against = 0, Abstain = 0;
-
-    setConsoleColor(3); // Cyan for heading
-    printf("UN Voting System\n");
-    printf("Enter votes for the Resolution (for, against, abstain)\n");
-    setConsoleColor(7); // Reset to default
-
-for (int i = 0; i < CountryMax; i++) {
-        strcpy(countries[i].name, countriesList[i]);
+    printf("\n--- Conducting Voting Session ---\n");
+    for (int i = 0; i < MAX_COUNTRIES; i++) {
         while (1) {
-            setConsoleColor(6); // Yellow for prompts
-            printf("Enter %s vote (for/against/abstain): ", countries[i].name);
-            setConsoleColor(7);
+            printf("Enter vote for %s (for/against/abstain): ", countries[i].name);
             scanf(" %9s", countries[i].vote);
 
-            if (valid(countries[i].vote)) {
+            if (isValidVote(countries[i].vote)) {
                 break;
             } else {
-                setConsoleColor(4); // Red for error
                 printf("Invalid vote. Please enter 'for', 'against', or 'abstain'.\n");
-                setConsoleColor(7);
             }
         }
 
-        // Count votes
         if (strcasecmp(countries[i].vote, "for") == 0) {
-            For++;
+            result->For++;
         } else if (strcasecmp(countries[i].vote, "against") == 0) {
-            Against++;
+            result->Against++;
         } else if (strcasecmp(countries[i].vote, "abstain") == 0) {
-            Abstain++;
+            result->Abstain++;
         }
     }
 
+    result->totalVotes = result->For + result->Against + result->Abstain;
 
-setConsoleColor(3); // Cyan for results
-    printf("\nVoting Results:\n");
-    printf("-------------------------------------------------------------\n");
-    printf("| %-25s | %-10s |\n", "Country", "Vote");
-    printf("-------------------------------------------------------------\n");
-    for (int i = 0; i < CountryMax; i++) {
-        printf("| %-25s | %-10s |\n", countries[i].name, countries[i].vote);
+    printf("\nVoting Completed:\n");
+    printf("For: %d, Against: %d, Abstain: %d\n", result->For, result->Against, result->Abstain);
+}
+
+void filingofvotingresults(VotingResult *result, Country countries[]) {
+    FILE *file = fopen(FILENAME, "a");
+    if (!file) {
+        perror("Error opening file");
+        return;
     }
-    printf("-------------------------------------------------------------\n");
 
-    setConsoleColor(7); // Reset color
-    printf("\nTotal Votes:\n");
-    setConsoleColor(2); // Green for positive results
-    printf("For: %d\n", For);
-    setConsoleColor(4); // Red for negative results
-    printf("Against: %d\n", Against);
-    setConsoleColor(6); // Yellow for neutral results
-    printf("Abstain: %d\n", Abstain);
-    setConsoleColor(7);
+    fprintf(file, "--- Voting Session Results ---\n");
+    for (int i = 0; i < MAX_COUNTRIES; i++) {
+        fprintf(file, "%s: %s\n", countries[i].name, countries[i].vote);
+    }
+    fprintf(file, "Summary: For: %d, Against: %d, Abstain: %d, Total Votes: %d\n",
+            result->For, result->Against, result->Abstain, result->totalVotes);
+    fprintf(file, "--------------------------------\n");
 
-    printf("\nResolution Status: ");
-    if (For > 12) {
-        setConsoleColor(2); // Green for passed
-        printf("Passed\n");
+    fclose(file);
+    printf("Results saved to '%s'.\n", FILENAME);
+}
+
+void displayPastResults() {
+    FILE *file = fopen(FILENAME, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+
+    char line[256];
+    printf("\n--- Past Voting Results ---\n");
+    while (fgets(line, sizeof(line), file)) {
+        printf("%s", line);
+    }
+
+    fclose(file);
+}
+
+void compareTurnaround(VotingResult *newResult) {
+    FILE *file = fopen(FILENAME, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+
+    int For, Against, Abstain, totalVotes;
+    int effectivePastVotes = 0, sessionCount = 0;
+
+    char line[256];
+
+    while (fgets(line, sizeof(line), file)) {
+        if (sscanf(line, "Summary: For: %d, Against: %d, Abstain: %d, Total Votes: %d", 
+            &For, &Against, &Abstain, &totalVotes) == 4) {
+            effectivePastVotes += (totalVotes - Abstain);
+            sessionCount++;
+        }
+    }
+
+    fclose(file);
+
+    if (sessionCount == 0) {
+        printf("No past voting sessions available for comparison.\n");
+        return;
+    }
+
+    int averageEffectiveVotes = effectivePastVotes / sessionCount;
+    int currentEffectiveVotes = newResult->totalVotes - newResult->Abstain;
+
+    printf("\n--- Turnaround Comparison ---\n");
+    printf("Average Past Effective Votes (Excluding Abstentions): %d\n", averageEffectiveVotes);
+    printf("Current Session Effective Votes (Excluding Abstentions): %d\n", currentEffectiveVotes);
+
+    if (currentEffectiveVotes > averageEffectiveVotes) {
+        printf("Current session had a higher effective turnout.\n");
+    } else if (currentEffectiveVotes < averageEffectiveVotes) {
+        printf("Current session had a lower effective turnout.\n");
     } else {
-        setConsoleColor(4); // Red for failed
-        printf("Failed\n");
+        printf("Current session had the same effective turnout as the average.\n");
     }
-    setConsoleColor(7);
+}
 
-    saveToFile(countries, For, Against, Abstain);
-
-    return 0;
+void clearVotingResultsFile() {
+    FILE *file = fopen(FILENAME, "w");
+    if (!file) {
+        perror("Error clearing file");
+        return;
+    }
+    fclose(file);
+    printf("File contents cleared successfully.\n");
 }
