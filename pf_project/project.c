@@ -17,7 +17,7 @@ typedef struct {
     int Against;
     int Abstain;
     int totalVotes;
-    bool resolutionPassed;  // To track whether the resolution passed or failed
+    bool resolutionPassed;  // To track whether the resolution passed or failed( true or false)
 } VotingResult;
 
 const char *countryList[MAX_COUNTRIES] = {
@@ -27,12 +27,12 @@ const char *countryList[MAX_COUNTRIES] = {
     "Belarus", "Belgium", "Belize", "Benin", "Bhutan"
 };
 
-// Add more categories for voting
+// category for voting
 const char *categoryList[] = {
     "Climate Change", "Human Rights", "Economic Policy", "Global Health", "Technology Development"
 };
 
-// Function to set console text color
+//  set console text color
 void setConsoleColor(WORD color) {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, color);
@@ -69,7 +69,7 @@ int main() {
 
         switch (choice) {
             case 1:
-                // Choose a category before conducting voting
+                
                 printf("\nSelect a voting category:\n");
                 for (int i = 0; i < 5; i++) {
                     printf("%d. %s\n", i + 1, categoryList[i]);
@@ -156,7 +156,7 @@ void conductVoting(Country countries[], VotingResult *result, int categoryChoice
     }
 
     result->totalVotes = result->For + result->Against + result->Abstain;
-    result->resolutionPassed = (result->For > 12);  // For votes greater than 12, resolution passes
+    result->resolutionPassed = (result->For > 12);  //checking if for more then 12 resolution is passed
 
     printf("\nVoting Completed:\n");
     if (result->resolutionPassed) {
